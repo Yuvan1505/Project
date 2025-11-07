@@ -1,116 +1,221 @@
-import React, { useState, useEffect, useRef } from "react";
-import ReactDOM from "react-dom/client";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Chat Assistant</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
 
-function App() {
-  const [messages, setMessages] = useState([
-    { sender: "John", text: "Hey there!", time: "10:30 AM" },
-    { sender: "You", text: "Hello 👋", time: "10:31 AM" },
-  ]);
-  const [darkMode, setDarkMode] = useState(false);
-  const [text, setText] = useState("");
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-  const contacts = [
-    { name: "John", online: true },
-    { name: "Emma", online: false },
-    { name: "David", online: true },
-    { name: "Sarah", online: true },
-  ];
+    .chat-container {
+      width: 420px;
+      height: 640px;
+      background: #fff;
+      border-radius: 25px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
 
-  const chatEndRef = useRef(null);
+    .chat-header {
+      background: linear-gradient(135deg, #764ba2, #667eea);
+      color: #fff;
+      padding: 18px;
+      text-align: center;
+      font-size: 1.3em;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    .chat-messages {
+      flex: 1;
+      padding: 15px;
+      background: #f7f9fc;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
 
-  const sendMessage = () => {
-    if (text.trim() === "") return;
-    const now = new Date();
-    const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    setMessages([...messages, { sender: "You", text, time }]);
-    setText("");
-  };
+    .message {
+      max-width: 80%;
+      padding: 10px 15px;
+      border-radius: 20px;
+      font-size: 0.95em;
+      animation: fadeIn 0.3s ease-in;
+      line-height: 1.5;
+      position: relative;
+    }
 
-  return (
-    <div>
-      {/* Inline Styles */}
-      <style>{`
-        body { margin:0; font-family:Poppins,sans-serif; background:#f5f6fa; }
-        .chat-app { display:flex; height:100vh; transition:0.3s; }
-        .dark { background:#2f3640; color:white; }
-        .sidebar { width:25%; background:#2f3640; color:white; padding:20px; display:flex; flex-direction:column; }
-        .sidebar-header { display:flex; justify-content:space-between; align-items:center; }
-        .mode-toggle { background:none; border:none; font-size:20px; color:white; cursor:pointer; }
-        .sidebar ul { list-style:none; padding:0; margin-top:20px; }
-        .sidebar li { padding:10px; border-radius:8px; display:flex; align-items:center; gap:10px; transition:0.3s; }
-        .sidebar li:hover { background:#353b48; }
-        .status-dot { width:10px; height:10px; border-radius:50%; }
-        .online { background:#4cd137; }
-        .offline { background:#c23616; }
-        .chat-section { flex:1; display:flex; flex-direction:column; background:white; transition:0.3s; }
-        .dark .chat-section { background:#353b48; }
-        .chat-window { flex:1; padding:20px; overflow-y:auto; background:#ecf0f1; }
-        .dark .chat-window { background:#414b57; }
-        .message { margin:8px 0; padding:10px 14px; border-radius:12px; max-width:60%; position:relative; }
-        .sent { background:#4cd137; color:white; margin-left:auto; }
-        .received { background:#dcdde1; color:black; margin-right:auto; }
-        .dark .received { background:#718093; }
-        .time { font-size:10px; opacity:0.7; display:block; margin-top:4px; text-align:right; }
-        .message-input { display:flex; padding:10px; border-top:1px solid #dcdde1; background:white; }
-        .dark .message-input { background:#2f3640; border-top:1px solid #718093; }
-        .message-input input { flex:1; padding:10px; border:none; border-radius:20px; outline:none; background:#f1f2f6; }
-        .dark .message-input input { background:#718093; color:white; }
-        .message-input button { background:#0097e6; color:white; border:none; padding:10px 16px; border-radius:20px; margin-left:8px; cursor:pointer; transition:0.3s; }
-        .message-input button:hover { background:#40739e; }
-      `}</style>
+    .message.user {
+      align-self: flex-end;
+      background: #667eea;
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
 
-      <div className={`chat-app ${darkMode ? "dark" : ""}`}>
-        <div className="sidebar">
-          <div className="sidebar-header">
-            <h2>Chats</h2>
-            <button className="mode-toggle" onClick={() => setDarkMode(!darkMode)}>
-              {darkMode ? "☀️" : "🌙"}
-            </button>
-          </div>
-          <ul>
-            {contacts.map((c, i) => (
-              <li key={i}>
-                <span className={`status-dot ${c.online ? "online" : "offline"}`}></span>
-                {c.name}
-              </li>
-            ))}
-          </ul>
-        </div>
+    .message.bot {
+      align-self: flex-start;
+      background: #e5e5ea;
+      color: #000;
+      border-bottom-left-radius: 5px;
+    }
 
-        <div className="chat-section">
-          <div className="chat-window">
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`message ${msg.sender === "You" ? "sent" : "received"}`}
-              >
-                <p>{msg.text}</p>
-                <span className="time">{msg.time}</span>
-              </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
+    .time {
+      font-size: 0.7em;
+      color: #555;
+      margin-top: 2px;
+      text-align: right;
+    }
 
-          <div className="message-input">
-            <input
-              type="text"
-              placeholder="Type a message..."
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            />
-            <button onClick={sendMessage}>Send</button>
-          </div>
-        </div>
-      </div>
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+      background: #fff;
+    }
+
+    .chat-input input {
+      flex: 1;
+      border: none;
+      outline: none;
+      padding: 15px;
+      font-size: 1em;
+      border-radius: 0;
+    }
+
+    .chat-input button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 15px 25px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: 0.3s;
+      border-radius: 0;
+    }
+
+    .chat-input button:hover {
+      opacity: 0.9;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bot-typing {
+      font-size: 0.85em;
+      color: #999;
+      margin-left: 10px;
+      animation: blink 1.2s infinite;
+    }
+
+    @keyframes blink {
+      0% { opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">💬 Smart Chat Assistant</div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Type a message..." />
+      <button onclick="sendMessage()">Send</button>
     </div>
-  );
-}
+  </div>
 
-// Mount the App
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<App />);
+  <script>
+    const chatMessages = document.getElementById("chatMessages");
+    const userInput = document.getElementById("userInput");
+
+    function addMessage(text, sender) {
+      const msg = document.createElement("div");
+      msg.classList.add("message", sender);
+      msg.innerHTML = text;
+
+      const time = document.createElement("div");
+      time.classList.add("time");
+      const now = new Date();
+      time.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      msg.appendChild(time);
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function botReply(userText) {
+      const lower = userText.toLowerCase();
+
+      if (lower.includes("hi") || lower.includes("hello")) {
+        return "Hello 👋! How can I help you today?";
+      } else if (lower.includes("time")) {
+        return `The current time is ${new Date().toLocaleTimeString()}.`;
+      } else if (lower.includes("date")) {
+        return `Today's date is ${new Date().toLocaleDateString()}.`;
+      } else if (lower.includes("your name")) {
+        return "I'm your Smart Chat Assistant 🤖";
+      } else if (lower.includes("help")) {
+        return "You can ask me about time, date, or just chat casually!";
+      } else if (lower.includes("bye")) {
+        return "Goodbye 👋! Have a great day!";
+      } else if (lower.includes("joke")) {
+        const jokes = [
+          "Why don't skeletons fight each other? They don’t have the guts! 💀",
+          "What do you call fake spaghetti? An impasta! 🍝",
+          "Why did the computer show up at work late? It had a hard drive! 💻"
+        ];
+        return jokes[Math.floor(Math.random() * jokes.length)];
+      } else {
+        return "I'm not sure I understand 🤔, but I'm learning every day!";
+      }
+    }
+
+    function sendMessage() {
+      const text = userInput.value.trim();
+      if (text === "") return;
+      addMessage(text, "user");
+      userInput.value = "";
+
+      const typingIndicator = document.createElement("div");
+      typingIndicator.classList.add("message", "bot");
+      typingIndicator.innerHTML = `<span class='bot-typing'>Assistant is typing...</span>`;
+      chatMessages.appendChild(typingIndicator);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      setTimeout(() => {
+        typingIndicator.remove();
+        const reply = botReply(text);
+        addMessage(reply, "bot");
+      }, 1000);
+    }
+
+    userInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    // Auto greeting
+    window.onload = () => {
+      addMessage("Hello! 👋 I'm your Smart Chat Assistant. How can I help you?", "bot");
+    };
+  </script>
+</body>
+</html>
